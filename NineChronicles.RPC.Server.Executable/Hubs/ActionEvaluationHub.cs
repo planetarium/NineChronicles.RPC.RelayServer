@@ -27,7 +27,7 @@ namespace NineChronicles.RPC.Server.Executable.Hubs
         public async Task LeaveAsync()
         {
             await _addressGroup.RemoveAsync(Context);
-            _logger.LogDebug($"Client {_privateKey.ToAddress().ToHex()} left.");
+            _logger.LogDebug($"Client {_privateKey.Address.ToHex()} left.");
         }
         public async Task BroadcastRenderAsync(byte[] outputStates)
         {
@@ -43,7 +43,7 @@ namespace NineChronicles.RPC.Server.Executable.Hubs
 
         public async Task BroadcastRenderBlockAsync(byte[] oldTip, byte[] newTip)
         {
-            _logger.LogInformation($"RenderBlock Thread: {_privateKey.ToAddress()}");
+            _logger.LogInformation($"RenderBlock Thread: {_privateKey.Address}");
             Broadcast(_addressGroup).OnRenderBlock(oldTip, newTip);
             await Task.CompletedTask;
         }

@@ -37,51 +37,17 @@ namespace NineChronicles.RPC.Server.Executable.Services
         public UnaryResult<long> GetNextTxNonce(byte[] addressBytes) =>
             new UnaryResult<long>(Unwrap(_headlessService.GetNextTxNonce(addressBytes)));
 
-        public UnaryResult<byte[]> GetState(byte[] addressBytes, byte[] blockHashBytes)
-        {
-            _logger.LogDebug($"GetState: {addressBytes}, {blockHashBytes}");
-            if (_stateCache.TryGetState(addressBytes, blockHashBytes, out var stateBytes))
-            {
-                return new UnaryResult<byte[]>(stateBytes);
-            }
-            var state = Unwrap(_headlessService.GetState(addressBytes, blockHashBytes));
-            _stateCache.TrySetState(addressBytes, blockHashBytes, state);
-            return new UnaryResult<byte[]>(state);
-        }
+        public UnaryResult<byte[]> GetStateByBlockHash(byte[] blockHashBytes, byte[] accountAddressBytes, byte[] addressBytes) =>
+            new UnaryResult<byte[]>(Unwrap(_headlessService.GetStateByBlockHash(blockHashBytes, accountAddressBytes, addressBytes)));
 
-        public UnaryResult<byte[]> GetStateBySrh(byte[] addressBytes, byte[] stateRootHashBytes)
-        {
-            _logger.LogDebug($"GetStateBySrh: {addressBytes}, {stateRootHashBytes}");
-            if (_stateCache.TryGetStateBySrh(addressBytes, stateRootHashBytes, out var stateBytes))
-            {
-                return new UnaryResult<byte[]>(stateBytes);
-            }
-            var state = Unwrap(_headlessService.GetStateBySrh(addressBytes, stateRootHashBytes));
-            _stateCache.TrySetStateBySrh(addressBytes, stateRootHashBytes, state);
-            return new UnaryResult<byte[]>(state);
-        }
+        public UnaryResult<byte[]> GetStateByStateRootHash(byte[] stateRootHashBytes, byte[] accountAddressBytes, byte[] addressBytes) =>
+            new UnaryResult<byte[]>(Unwrap(_headlessService.GetStateByStateRootHash(stateRootHashBytes, accountAddressBytes, addressBytes)));
 
-        public UnaryResult<byte[]> GetBalance(byte[] addressBytes, byte[] currencyBytes, byte[] blockHashBytes)
-        {
-            if(_stateCache.TryGetBalance(addressBytes, currencyBytes, blockHashBytes, out var balanceBytes))
-            {
-                return new UnaryResult<byte[]>(balanceBytes);
-            }
-            var balance = Unwrap(_headlessService.GetBalance(addressBytes, currencyBytes, blockHashBytes));
-            _stateCache.TrySetBalance(addressBytes, currencyBytes, blockHashBytes, balance);
-            return new UnaryResult<byte[]>(balance);
-        }
+        public UnaryResult<byte[]> GetBalanceByBlockHash(byte[] blockHashBytes, byte[] addressBytes, byte[] currencyBytes) =>
+            new UnaryResult<byte[]>(Unwrap(_headlessService.GetBalanceByBlockHash(blockHashBytes, addressBytes, currencyBytes)));
 
-        public UnaryResult<byte[]> GetBalanceBySrh(byte[] addressBytes, byte[] currencyBytes, byte[] stateRootHashBytes)
-        {
-            if(_stateCache.TryGetBalanceBySrh(addressBytes, currencyBytes, stateRootHashBytes, out var balanceBytes))
-            {
-                return new UnaryResult<byte[]>(balanceBytes);
-            }
-            var balance = Unwrap(_headlessService.GetBalanceBySrh(addressBytes, currencyBytes, stateRootHashBytes));
-            _stateCache.TrySetBalanceBySrh(addressBytes, currencyBytes, stateRootHashBytes, balance);
-            return new UnaryResult<byte[]>(balance);
-        }
+        public UnaryResult<byte[]> GetBalanceByStateRootHash(byte[] stateRootHashBytes, byte[] addressBytes, byte[] currencyBytes) =>
+            new UnaryResult<byte[]>(Unwrap(_headlessService.GetBalanceByStateRootHash(stateRootHashBytes, addressBytes, currencyBytes)));
 
         public UnaryResult<byte[]> GetTip() =>
             new UnaryResult<byte[]>(Unwrap(_headlessService.GetTip()));
@@ -104,82 +70,27 @@ namespace NineChronicles.RPC.Server.Executable.Services
         public UnaryResult<bool> RemoveClient(byte[] addressByte) =>
             new UnaryResult<bool>(Unwrap(_headlessService.RemoveClient(addressByte)));
 
-        public UnaryResult<Dictionary<byte[], byte[]>> GetAvatarStates(IEnumerable<byte[]> addressBytesList, byte[] blockHashBytes)
-        {
-            var result = new Dictionary<byte[], byte[]>();
-            foreach (byte[] addressBytes in addressBytesList)
-            {
-                if (_stateCache.TryGetState(addressBytes, blockHashBytes, out var stateBytes))
-                {
-                    result.Add(addressBytes, stateBytes);
-                }
-                else
-                {
-                    var state = Unwrap(_headlessService.GetState(addressBytes, blockHashBytes));
-                    _stateCache.TrySetState(addressBytes, blockHashBytes, state);
-                    result.Add(addressBytes, state);
-                }
-            }
-            return new UnaryResult<Dictionary<byte[], byte[]>>(result);
-        }
+        public UnaryResult<Dictionary<byte[], byte[]>> GetAgentStatesByBlockHash(byte[] blockHashBytes, IEnumerable<byte[]> addressBytesList) =>
+            new UnaryResult<Dictionary<byte[], byte[]>>(Unwrap(_headlessService.GetAgentStatesByBlockHash(blockHashBytes, addressBytesList)));
 
-        public UnaryResult<Dictionary<byte[], byte[]>> GetAvatarStatesBySrh(IEnumerable<byte[]> addressBytesList, byte[] stateRootHashBytes)
-        {
-            var result = new Dictionary<byte[], byte[]>();
-            foreach (byte[] addressBytes in addressBytesList)
-            {
-                if (_stateCache.TryGetStateBySrh(addressBytes, stateRootHashBytes, out var stateBytes))
-                {
-                    result.Add(addressBytes, stateBytes);
-                }
-                else
-                {
-                    var state = Unwrap(_headlessService.GetStateBySrh(addressBytes, stateRootHashBytes));
-                    _stateCache.TrySetStateBySrh(addressBytes, stateRootHashBytes, state);
-                    result.Add(addressBytes, state);
-                }
-            }
-            return new UnaryResult<Dictionary<byte[], byte[]>>(result);
-        }
+        public UnaryResult<Dictionary<byte[], byte[]>> GetAgentStatesByStateRootHash(byte[] stateRootHashBytes, IEnumerable<byte[]> addressBytesList) =>
+            new UnaryResult<Dictionary<byte[], byte[]>>(Unwrap(_headlessService.GetAgentStatesByStateRootHash(stateRootHashBytes, addressBytesList)));
 
-        public UnaryResult<Dictionary<byte[], byte[]>> GetStateBulk(IEnumerable<byte[]> addressBytesList, byte[] blockHashBytes)
-        {
-            var result = new Dictionary<byte[], byte[]>();
-            foreach (byte[] addressBytes in addressBytesList)
-            {
-                if (_stateCache.TryGetState(addressBytes, blockHashBytes, out var stateBytes))
-                {
-                    result.Add(addressBytes, stateBytes);
-                }
-                else
-                {
-                    var state = Unwrap(_headlessService.GetState(addressBytes, blockHashBytes));
-                    _stateCache.TrySetState(addressBytes, blockHashBytes, state);
-                    result.Add(addressBytes, state);
-                }
-            }
-            return new UnaryResult<Dictionary<byte[], byte[]>>(result);
-        }
+        public UnaryResult<Dictionary<byte[], byte[]>> GetAvatarStatesByBlockHash(byte[] blockHashBytes, IEnumerable<byte[]> addressBytesList) =>
+            new UnaryResult<Dictionary<byte[], byte[]>>(Unwrap(_headlessService.GetAvatarStatesByBlockHash(blockHashBytes, addressBytesList)));
 
-        public UnaryResult<Dictionary<byte[], byte[]>> GetStateBulkBySrh(IEnumerable<byte[]> addressBytesList, byte[] stateRootHashBytes)
-        {
-            var result = new Dictionary<byte[], byte[]>();
-            foreach (byte[] addressBytes in addressBytesList)
-            {
-                if (_stateCache.TryGetStateBySrh(addressBytes, stateRootHashBytes, out var stateBytes))
-                {
-                    result.Add(addressBytes, stateBytes);
-                }
-                else
-                {
-                    var state = Unwrap(_headlessService.GetStateBySrh(addressBytes, stateRootHashBytes));
-                    _stateCache.TrySetStateBySrh(addressBytes, stateRootHashBytes, state);
-                    result.Add(addressBytes, state);
-                }
-            }
-            return new UnaryResult<Dictionary<byte[], byte[]>>(result);
-        }
+        public UnaryResult<Dictionary<byte[], byte[]>> GetAvatarStatesByStateRootHash(byte[] stateRootHashBytes, IEnumerable<byte[]> addressBytesList) =>
+            new UnaryResult<Dictionary<byte[], byte[]>>(Unwrap(_headlessService.GetAvatarStatesByStateRootHash(stateRootHashBytes, addressBytesList)));
+
+        public UnaryResult<Dictionary<byte[], byte[]>> GetBulkStateByBlockHash(byte[] blockHashBytes, byte[] accountAddressBytes, IEnumerable<byte[]> addressBytesList) =>
+        new UnaryResult<Dictionary<byte[], byte[]>>(Unwrap(_headlessService.GetBulkStateByBlockHash(blockHashBytes, accountAddressBytes, addressBytesList)));
         
+        public UnaryResult<Dictionary<byte[], byte[]>> GetBulkStateByStateRootHash(byte[] stateRootHashBytes, byte[] accountAddressBytes, IEnumerable<byte[]> addressBytesList) =>
+        new UnaryResult<Dictionary<byte[], byte[]>>(Unwrap(_headlessService.GetBulkStateByStateRootHash(stateRootHashBytes, accountAddressBytes, addressBytesList)));
+
+        public UnaryResult<Dictionary<byte[], byte[]>> GetSheets(byte[] blockHashBytes, IEnumerable<byte[]> addressBytesList) =>
+            new UnaryResult<Dictionary<byte[], byte[]>>(Unwrap(_headlessService.GetSheets(blockHashBytes, addressBytesList)));
+
         private static T Unwrap<T>(UnaryResult<T> result)
         {
             return result.ResponseAsync.Result;

@@ -1,3 +1,4 @@
+using Libplanet.Crypto;
 using LruCacheNet;
 
 namespace NineChronicles.RPC.Server.Executable
@@ -9,6 +10,7 @@ namespace NineChronicles.RPC.Server.Executable
         private readonly LruCache<(byte[], byte[]), byte[]> _stateBySrhCache;
         private readonly LruCache<(byte[], byte[], byte[]), byte[]> _balanceByBlockCache;
         private readonly LruCache<(byte[], byte[], byte[]), byte[]> _balanceBySrhCache;
+        private readonly PrivateKey _privateKey = new PrivateKey();
 
         public StateCache(ILogger<StateCache> logger)
         {
@@ -21,10 +23,11 @@ namespace NineChronicles.RPC.Server.Executable
 
         public bool TryGetState(byte[] addressBytes, byte[] blockHashBytes, out byte[] stateBytes)
         {
+            _logger.LogInformation($"StateCache called: {_privateKey.ToAddress()}");
             var result = _stateByBlockCache.TryGetValue((addressBytes, blockHashBytes), out stateBytes);
             if (result)
             {
-                _logger.LogDebug($"Cache hit: TryGetState Cache size: {_stateByBlockCache.Count}");
+                _logger.LogInformation($"Cache hit: TryGetState Cache size: {_stateByBlockCache.Count}");
             }
             return result;
         }

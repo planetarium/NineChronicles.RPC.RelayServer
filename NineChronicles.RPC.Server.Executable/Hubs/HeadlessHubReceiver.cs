@@ -48,24 +48,6 @@ namespace NineChronicles.RPC.Server.Executable.Hubs
 
         public void OnRender(byte[] evaluation)
         {
-            try
-            {
-                if (_hub is null)
-                {
-                    var channel = GrpcChannel.ForAddress($"http://{IPAddress.Loopback.ToString()}:5250", _grpcChannelOptions); 
-                    _hub = StreamingHubClient.ConnectAsync<IActionEvaluationHub, IActionEvaluationHubReceiver>(
-                        channel,
-                        null!
-                    ).Result;
-                    _hub.JoinAsync(_privateKey.ToAddress().ToHex());
-                    _logger.LogInformation("Connected to local ActionEvaluationHub.");
-                }
-
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
             _hub?.BroadcastRenderAsync(evaluation);
         }
 
@@ -110,6 +92,7 @@ namespace NineChronicles.RPC.Server.Executable.Hubs
                 _grpcChannel, 
                 this,
                 cancellationToken: cancellationToken);
+
             BlockChainService = MagicOnionClient.Create<IBlockChainService>(_grpcChannel);
             await _headlessHub.JoinAsync(_privateKey.ToAddress().ToHex());
             await BlockChainService.AddClient(_privateKey.ToAddress().ToByteArray());
@@ -117,7 +100,15 @@ namespace NineChronicles.RPC.Server.Executable.Hubs
             {
                 _privateKey.ToAddress().ToByteArray(),
             });
-            _logger.LogInformation("Connected to ActionEvaluationHub.");
+            _logger.LogInformation("Connected to HeadlessHub");
+            
+            var channel = GrpcChannel.ForAddress($"http://{IPAddress.Loopback.ToString()}:5250", _grpcChannelOptions); 
+            _hub = StreamingHubClient.ConnectAsync<IActionEvaluationHub, IActionEvaluationHubReceiver>(
+                channel,
+                null!
+            ).Result;
+            _hub?.JoinAsync(_privateKey.ToAddress().ToHex());
+            _logger.LogInformation("Connected to ActionEvaluationHub");
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
